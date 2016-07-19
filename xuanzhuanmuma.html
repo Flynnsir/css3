@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>旋转木马</title>
+	<style type="text/css">
+	#stage{
+		width: 1000px;
+		height: 400px;
+		background: #ccc;
+		margin: 50px auto;
+		-webkit-perspective:800px;
+		-webkit-perspective-origin:50% -10%;
+	}
+#container{
+	width: 128px;
+	height: 100px;
+	position: absolute;
+	left: 50%;
+	top: 80px;
+	margin-left: -64px;
+	-webkit-transform-style:preserve-3d;
+	-webkit-transition:transform 1s ease-in;
+}
+#container img{
+	position: absolute;
+		-webkit-transition:transform 1s ease-in;
+
+}
+	</style>
+
+</head>
+<body>
+<div id="stage">
+			<div id="container">
+			
+				</div>
+</div>
+<script type="text/javascript">
+(function(){
+	var oContainer = document.getElementById('container');
+	// var html = '';
+	var now = 0;
+	for(var i=0;i<9;i++){
+		// html += '<img src="images/mm'+(i+1)+'.jpg" style="-webkit-transform:rotateY('+(i*40)+'deg) translateZ(190px);"/>';
+		var oImg = new Image();
+		oImg.onload = function(){
+			now++
+			if(now==9){
+				var aImg = oContainer.getElementsByTagName('img');
+				for(var j=0;j<aImg.length;j++){
+					(function(index){
+						setTimeout(function(){
+							aImg[index].style.WebkitTransform = 'rotateY('+index*40+'deg) translateZ(190px)';
+						},100*(9-i))
+					})(j)
+				}
+			}
+		}
+			oImg.src = 'images/mm'+ (i+1) +'.jpg';
+			oContainer.appendChild(oImg);;
+	}
+
+
+	var index = 0;
+	oContainer.onclick = function(){
+		index++;
+		this.style.WebkitTransform = 'rotateY('+ (-index*40) +
+'deg)';	};
+
+})();
+
+</script>
+</body>
+</html>
