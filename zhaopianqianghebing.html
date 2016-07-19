@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+	body{
+		background: url(img/bg.jpg);
+		overflow: hidden;
+	}
+	#container{
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		left: 0;
+		top: 0;
+
+	}	
+	#container .img{
+		position: absolute;
+		left: 0;
+		top: 0;
+		cursor: pointer;
+		border:6px solid #fff;
+		box-shadow: 2px 2px 2px rgba(0,0,0,.7);
+		-webkit-transition:all 1.5s ease-in-out;
+	}
+	#container .img.piece{
+		border:1px solid white;
+		box-shadow: 0 0 2px black;
+	}
+	#container .img span{
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		-webkit-transition:all 1.5s ease-in-out;
+
+	}
+	#prev,#next{
+		width: 60px;
+		height: 60px;
+		position: absolute;
+		top: 50%;
+		margin-top: -30px;
+		border:1px solid #999;
+		box-shadow: 0 0 1px rgba(0,0,0,.7);
+		z-index: 1;
+		opacity: 0.6;
+		display:none;
+	}
+	#prev{
+		left: -20px;
+		background: url(img/prev.png) center no-repeat #fff;
+		border-radius: 0 8px 8px 0;
+	}
+	#next{
+		right: -20px;
+		background: url(img/next.png) center no-repeat #fff;
+		border-radius:  8px 0 0 8px ;
+	}
+	
+
+
+	</style>
+</head>
+<body>
+	<div id="container"></div>
+	<a href="javascript:;" id="prev"></a>
+		<a href="javascript:;" id="next"></a>
+	<script>
+		(function(){
+			var oContainer = document.getElementById('container');
+			var oNext = document.getElementById('next');
+			var oPrev = document.getElementById('prev');
+
+			var ROW = 4,
+				COL = 6,
+				NUM = ROW*COL,
+				BIG_IMG_WIDTH = 750,
+				BIG_IMG_HEIGTH = 500,
+				THUMB_IMG_W_H = 125;
+
+				var bClicked = false;//判断是否点击了格子
+				var iNow = 0;//大图片索引
+
+				//预加载图片
+				var iLoaded = 0;
+				for(var i=0;i<NUM;i++){
+					var oBigImg = new Image();
+					oBigImg.src = 'img/' + (i+1) + '.jpg';
+					oBigImg.onload = function(){
+						if (++iLoaded == NUM*2) {
+							loadSuccess();
+						};
+					};
+					var oThumbImg = new Image();
+					oThumbImg.src = 'img/thumbs/' + (i+1) + '.jpg';
+					oThumbImg.onload = function(){
+						if (++iLoaded == NUM*2) {
+							loadSuccess();
+						};
+					};
+
+				}
+				function loadSuccess(){
+					var index = 0;//图片索引
+					var iColGap = (oContainer.offsetWidth - COL*THUMB_IMG_W_H)/(COL+1),//列间隙
+						iRowGap = (oContainer.offsetHeight - ROW*THUMB_IMG_W_H)/(ROW+1);
+					for(var i=0;i<ROW;i++){
+						for(var j=0;j<COL;j++){
+							var oDiv = document.createElement('div');
+							oDiv.pos = {
+								left:parseInt(iColGap + j*(iColGap + THUMB_IMG_W_H)),
+								top:parseInt(iRowGap + i*(iRowGap + THUMB_IMG_W_H))
+
+							};
+							oDiv.className = 'img';
+							oDiv.style.left = (-Math.random()*300-200) + 'px';
+							oDiv.style.top = (-Math.random()*300-200) + 'px';
+							oDiv.index=index;
+							oDiv.Neo = {//记录格子的行和列号
+								row:i,
+								col:j
+							};
+							oDiv.style.width = THUMB_IMG_W_H + 'px';
+							oDiv.style.height = THUMB_IMG_W_H + 'px';
+							oDiv.style.background = 'url(img/thumbs/' + (index+1) + '.jpg)';
+							oDiv.innerHTML = '<span></span>'
+
+							oContainer.appendChild(oDiv);
+							index++;
+						};
+					};
+					var aImg = document.getElementsByClassName('img');
+					index--;//上面index已经加到24要先减
+					var timer = setInterval(function(){
+						
+						aImg[index].style.left = aImg[index].pos.left + 'px';
+						aImg[index].style.top = aImg[index].pos.top + 'px';
+						setStyle3d(aImg[index],'rotate('+(Math.random()*40-20)+'deg)');
+						aImg[index].addEventListener('click',clickHandler,false);
+						index--;
+						if (index == -1) {
+							clearInterval(timer);
+						}
+						},100)
+					function clickHandler(){
+						
+						if (bClicked){//已合并要打散
+							for(var i=0;i<aImg.length;i++){
+								var oSpan = aImg[i].getElementsByTagName('span')[0];
+								oSpan.style.opacity = 0;
+							aImg[i].style.left = aImg[i].pos.left+'px';
+							aImg[i].style.top = aImg[i].pos.top+'px';
+							setStyle3d(aImg[i],'rotate('+(Math.random()*40-20)+'deg)');
+							aImg[i].className = 'img';
+							oPrev.style.display = oNext.style.display = 'none';
+							};
+						}else{//要合并
+						var bigImgPos = {
+							left:(oContainer.offsetWidth - BIG_IMG_WIDTH)/2,
+							top:(oContainer.offsetHeight - BIG_IMG_HEIGTH)/2
+						};
+						for(var i=0;i<aImg.length;i++){
+							var oSpan = aImg[i].getElementsByTagName('span')[0];
+							oSpan.style.background = 'url(img/'+(this.index+1)+'.jpg) '+(-aImg[i].Neo.col * THUMB_IMG_W_H)+'px '+(-aImg[i].Neo.row*THUMB_IMG_W_H)+'px';
+							oSpan.style.opacity = 1;
+							aImg[i].style.left =  bigImgPos.left+aImg[i].Neo.col*(THUMB_IMG_W_H+1)+ 'px';
+							aImg[i].style.top =  bigImgPos.top+aImg[i].Neo.row*(THUMB_IMG_W_H+1)+ 'px';
+							setStyle3d(aImg[i],'rotate(0deg)');
+							aImg[i].className = 'img piece';
+
+							};
+							oPrev.style.display = oNext.style.display ='block';
+						}
+						bClicked = !bClicked;
+					};
+					oPrev.onclick = oNext.onclick = function(){
+						if(this==oPrev){
+							iNow--;
+							if (iNow == -1) {
+								iNow = NUM-1;
+							}
+						}else{
+							iNow++;
+							if (iNow == NUM) {
+								iNow = 0;
+							}
+						};
+						var arr = [];
+						for (var i = 0; i < NUM; i++) {
+							arr.push(i);
+						}
+						arr.sort(function(){
+							return Math.random - 0.5;
+						})
+						var timer = setInterval(function(){	
+							var item = arr.pop();
+							aImg[item].getElementsByTagName('span')[0].style.background = 'url(img/'+(iNow+1)+'.jpg) '+(-aImg[item].Neo.col * THUMB_IMG_W_H)+'px '+(-aImg[item].Neo.row*THUMB_IMG_W_H)+'px';
+							if (arr.length == 0) {
+								clearInterval(timer);
+							}
+						},30);
+					};
+				}
+					
+				
+
+				function setStyle3d(elem,value,key){
+					key = key || 'Transform';
+					['Webkit','Moz','O','Ms',''].forEach(function(preflix){
+						elem.style[preflix + key] = value;
+					})
+				}
+
+
+
+
+
+
+
+
+		})(); 
+
+
+
+	</script>
+</body>
+</html>
